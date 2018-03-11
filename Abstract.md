@@ -5,7 +5,7 @@ Purpose: Educating the audience to use vROps to save time investigating issues a
 
 ## Automate Troubleshooting with vRealize Operations Manager
 
-Imagine you are working on a project with a rapidly approaching deadline and a coworker notifies you of an issue with a VM. VMware vRealize Operations Manager (vROps) is a powerful tool for monitoring, optimizing, and right sizing an environment but becomes even more powerful when combined with PowerCLI 10.0 and vRealize Log Insight. In this session you will learn how to leverage PowerCLI 10.0 to diagnose trouble VMs, how to transform your troubleshooting workflow into an automated runbook, and how to create an easy to consume report with clear results and suggestions to resolve the issue.
+Imagine you are working on a project with a rapidly approaching deadline and a coworker notifies you of an issue with a VM. VMware vRealize Operations Manager (vROps) is a powerful tool for monitoring, optimizing, and right sizing an environment but becomes even more powerful when combined with PowerCLI and vRealize Log Insight. In this session you will learn how to leverage PowerCLI to diagnose trouble VMs, how to transform your troubleshooting workflow into an automated runbook, and how to create an easy to consume report with clear results and suggestions to resolve the issue.
 
 ## Key Takeaways
 
