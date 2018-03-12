@@ -2,7 +2,7 @@
 if($global:DefaultOMServers.Name){
     Write-Host Connected to $global:DefautOMservers.Name
     }else{
-    Connect-OMServer -server (Read-Host "Enter your vROPs server name") -Authsource (Read-host "Enter your vRealize Authorization Source") -User (Read-host "Enter your username") -Password (read-host "Enter your Password")}
+    Connect-OMServer -server (Read-Host "Enter your vROPs server name") -Authsource (Read-host "Enter your vRealize Authorization Source")}
 CLS
 #Check status of vCenter server and connect if disconnected
 if($global:DefaultVIServer.IsConnected){
@@ -21,7 +21,7 @@ Write-host Hard drive capacity and free space
 get-wmiobject -Query "select * from win32_logicaldisk where DriveType=3" -ComputerName $TroubleVM |Select-Object DeviceID,Size,FreeSpace | ForEach-Object {write-host $_.PSComputerName,$_.DeviceID,Size:([math]::truncate($_.Size/1GB)),Free:([math]::truncate($_.FreeSpace/1GB))}
 
 Write-host Average usage stats over the past day
-Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now) -RollupType Avg -IntervalType Days -IntervalCount 1|Sort-Object Key|Format-table Key,@{N="Value in %"; E={[math]::Truncate($_.value)}}
+Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-1) -RollupType Avg -IntervalType Days -IntervalCount 1|Sort-Object Key|Format-table Key,@{N="Value in %"; E={[math]::Truncate($_.value)}}
 
 Write-host Average usages stats over the past 14 days
 Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-14) -RollupType Avg -IntervalType Days -IntervalCount 15|Sort-Object Key|Format-table Key,@{N="Value in %"; E={[math]::Truncate($_.value)}}
