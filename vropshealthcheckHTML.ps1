@@ -30,7 +30,7 @@ $TroubleVM = (Read-Host "Which VM are you concerned about?")
 $basicConfig = get-vm $TroubleVM | ConvertTo-EnhancedHTMLFragment -Properties name, Powerstate, @{N='IP Address';E={$_.ExtensionData.Guest.IPAddress}}, @{N="DNS Name"; E={$_.ExtensionData.Guest.Hostname}}, NumCPU, MemoryGB -As List -PreContent "<h2>Configuration info</h2>"
 
 # Hard drive capacity and free space
-$HDDInfo = get-wmiobject -ComputerName $TroubleVM -Credential $credential Win32_LogicalDisk | Where {$_.DriveType -eq 3}|  ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Hard Drive Information</h2>" -Properties @{N='Drive';E={$_.DeviceID}}, @{N='Size';E={([math]::Round($_.Size/1GB))}},@{N='Free';E={([math]::Round($_.FreeSpace/1GB))}},@{N='FreePct';E={[math]::Round(($_.FreeSpace/1GB)/($_.Size/1GB) * 100)};css={if ($_.FreePct -lt "30") { 'red' }}}
+$HDDInfo = get-wmiobject -ComputerName $TroubleVM -Credential $credential Win32_LogicalDisk | Where {$_.DriveType -eq 3}|  ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Hard Drive Information</h2>" -Properties @{N='Drive';E={$_.DeviceID}}, @{N='Size';E={([math]::Round($_.Size/1GB))}},@{N='Free';E={([math]::Round($_.FreeSpace/1GB))}},@{N='FreePct';E={[Math]::Round(((1 - (($_.FreeSpace/1GB)/($_.Size/1GB))) * 100),2)}}
 
 # Average usage stats over the past day
 $DayAverage = Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-1) -RollupType Avg -IntervalType Days -IntervalCount 1|Sort-Object Key|Select @{N='Daily Average'; E={$_.Key}},@{N="Value in %"; E={[math]::round($_.value)}}| ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Daily Average Utilization</h2>"
