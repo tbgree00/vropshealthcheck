@@ -27,23 +27,23 @@ CLS
 
 $TroubleVM = (Read-Host "Which VM are you concerned about?")
 
-$basicConfig = get-vm $TroubleVM |Select name, Powerstate, @{N='IP Address';E={$_.ExtensionData.Guest.IPAddress}}, @{N="DNS Name"; E={$_.ExtensionData.Guest.Hostname}}, NumCPU, MemoryGB | ConvertTo-HTML -Fragment -PreContent "<h2>Configuration info</h2>"
+$basicConfig = get-vm $TroubleVM | ConvertTo-EnhancedHTMLFragment -Properties name, Powerstate, @{N='IP Address';E={$_.ExtensionData.Guest.IPAddress}}, @{N="DNS Name"; E={$_.ExtensionData.Guest.Hostname}}, NumCPU, MemoryGB -As List -PreContent "<h2>Configuration info</h2>"
 
 # Hard drive capacity and free space
-$HDDInfo = get-wmiobject -ComputerName $TroubleVM -Credential $credential Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3}| Select @{N='Drive';E={$_.DeviceID}}, @{N='Size';E={([math]::truncate($_.Size/1GB))}},@{N='Free';E={([math]::truncate($_.FreeSpace/1GB))}}| Convertto-html -fragment -PreContent "<h2>Hard Drive Information</h2>" 
+$HDDInfo = get-wmiobject -ComputerName $TroubleVM -Credential $credential Win32_LogicalDisk | Where {$_.DriveType -eq 3}|  ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Hard Drive Information</h2>" -Properties @{N='Drive';E={$_.DeviceID}}, @{N='Size';E={([math]::Round($_.Size/1GB))}},@{N='Free';E={([math]::Round($_.FreeSpace/1GB))}},@{N='FreePct';E={[math]::Round(($_.FreeSpace/1GB)/($_.Size/1GB) * 100)};css={if ($_.FreePct -lt "30") { 'red' }}}
 
 # Average usage stats over the past day
-$DayAverage = Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-1) -RollupType Avg -IntervalType Days -IntervalCount 1|Sort-Object Key|Select @{N='Daily Average'; E={$_.Key}},@{N="Value in %"; E={[math]::Truncate($_.value)}}| ConvertTo-Html -fragment -PreContent "<h2>Daily Average Utilization</h2>"
+$DayAverage = Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-1) -RollupType Avg -IntervalType Days -IntervalCount 1|Sort-Object Key|Select @{N='Daily Average'; E={$_.Key}},@{N="Value in %"; E={[math]::round($_.value)}}| ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Daily Average Utilization</h2>"
 
 # Average usages stats over the past 14 days
-$14average = Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-14) -RollupType Avg -IntervalType Days -IntervalCount 15|Sort-Object Key|Select @{N='Fourteen Day Average'; E={$_.Key}},@{N="Value in %"; E={[math]::Truncate($_.value)}}| ConvertTo-Html -fragment -PreContent "<h2>Fourteen Day Average Utilization</h2>"
+$14average = Get-OMResource $TroubleVM| Get-OMStat -key 'mem|usage_average','cpu|usage_average','cpu|readyPct','cpu|costoppct' -From ([DateTime]::Now).AddDays(-14) -RollupType Avg -IntervalType Days -IntervalCount 15|Sort-Object Key|Select @{N='Fourteen Day Average'; E={$_.Key}},@{N="Value in %"; E={[math]::round($_.value)}}| ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2>Fourteen Day Average Utilization</h2>"
 
 # Sizing Recommendations Stress=%
-$Reccomendation = Get-OMResource $TroubleVM| Get-OMStat -key 'cpu|stress','cpu|numbertoadd','mem|stress','mem|underusedpercent','mem|waste'  -From ([DateTime]::Now).AddDays(-14) -RollupType Avg -IntervalType Days -IntervalCount 15|Sort-object Key|Select @{N='Sizing Recommendation'; E={$_.Key}},@{N="Value"; E={[math]::Truncate($_.value)}} | ConvertTo-Html -fragment -PreContent "<h2> Sizing Recommendations</h2>"
+$Reccomendation = Get-OMResource $TroubleVM| Get-OMStat -key 'cpu|stress','cpu|numbertoadd','mem|stress','mem|underusedpercent','mem|waste'  -From ([DateTime]::Now).AddDays(-14) -RollupType Avg -IntervalType Days -IntervalCount 15|Sort-object Key|Select @{N='Sizing Recommendation'; E={$_.Key}},@{N="Value"; E={[math]::Truncate($_.value)}} | ConvertTo-EnhancedHTMLFragment -As Table -PreContent "<h2> Sizing Recommendations</h2>"
 
 
-# Most Recent vCenter Events 
-$VMEvents = Get-VM $TroubleVM| Get-VIEvent -MaxSamples 5 | select UserName, CreatedTime, FullFormattedMessage | ConvertTo-Html -Fragment -PreContent "<h2> vCenter Events (previous five)</h2>"
+# Most Recent vCenter Events
+$VMEvents = Get-VM $TroubleVM| Get-VIEvent -MaxSamples 5 | select UserName, CreatedTime, FullFormattedMessage | ConvertTo-EnhancedHtmlFragment -PreContent "<h2> vCenter Events (previous five)</h2>"
 
 # Last 5 System Event Log Errors
 $SysEvents = Get-Eventlog -LogName System -computer $TroubleVM -EntryType Error -Newest 5  | Select TimeGenerated, Source, Message | ConvertTo-Html -Fragment -PreContent "<h2>System Event Log Errors</h2>"
@@ -52,6 +52,11 @@ $SysEvents = Get-Eventlog -LogName System -computer $TroubleVM -EntryType Error 
 $AppEvents = Get-Eventlog -LogName Application -computer $TroubleVM -EntryType Error -Newest 5 | Select TimeGenerated, Source, Message | ConvertTo-Html -Fragment -PreContent "<h2>Application Event Log Errors</h2>"
 
 
-ConvertTo-HTML -Body "$BasicConfig $HDDinfo $DayAverage $14average $Reccomendation $VMEvents $SysEvents $AppEvents" -Title "Health Check" -CssUri styles.css -PreContent "<h1>Health Check for $TroubleVM</h1>" | Out-file VMHealthCheck.html -Encoding ASCII
+ConvertTo-EnhancedHTML -HTMLFragments $BasicConfig, $HDDinfo, $DayAverage, $14average, $Reccomendation, $VMEvents, $SysEvents, $AppEvents -Title "Health Check" -CssUri styles2.css -PreContent "<h1>Health Check for $TroubleVM</h1>" | Out-file "EnhancedVMHealthCheck.html" -Encoding ASCII
 
 Write-Host "Script Complete"
+
+
+
+# Full conversion for AD Account
+# ConvertTo-EnhancedHTML -HTMLFragments $BasicConfig, $HDDinfo, $DayAverage, $14average, $Reccomendation, $VMEvents, $SysEvents, $AppEvents -Title "Health Check" -CssUri styles2.css -PreContent "<h1>Health Check for $TroubleVM</h1>" | Out-file "EnhancedVMHealthCheck.html" -Encoding ASCII
