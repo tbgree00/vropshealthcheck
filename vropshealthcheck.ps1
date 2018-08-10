@@ -1,9 +1,11 @@
+#Disable depreciation warnings for the session
+Set-PowerCLIConfiguration -Scope Session -DisplayDeprecationWarnings $false -Confirm: $false
+
 #Check status of vROPs server and connect if Disconnected
 if($global:DefaultOMServers.Name){
     Write-Host Connected to $global:DefautOMservers.Name
     }else{
     Connect-OMServer -server (Read-Host "Enter your vROPs server name") -Authsource (Read-host "Enter your vRealize Authorization Source")}
-CLS
 #Check status of vCenter server and connect if disconnected
 if($global:DefaultVIServer.IsConnected){
     Write-Host Connected to $global:DefaultVIServer.Name

@@ -15,7 +15,6 @@ if($global:DefaultOMServers.Name){
     Write-Host Connected to $global:DefautOMservers.Name
     }else{
     Connect-OMServer -server (Read-Host "Enter your vROPs server name") -Authsource (Read-host "Enter your vRealize Authorization Source")}
-CLS
 #Check status of vCenter server and connect if disconnected
 if($global:DefaultVIServer.IsConnected){
     Write-Host Connected to $global:DefaultVIServer.Name
@@ -55,8 +54,3 @@ $AppEvents = Get-Eventlog -LogName Application -computer $TroubleVM -EntryType E
 ConvertTo-EnhancedHTML -HTMLFragments $BasicConfig, $HDDinfo, $DayAverage, $14average, $Reccomendation, $VMEvents, $SysEvents, $AppEvents -Title "Health Check" -CssUri styles2.css -PreContent "<h1>Health Check for $TroubleVM</h1>" | Out-file "EnhancedVMHealthCheck.html" -Encoding ASCII
 
 Write-Host "Script Complete"
-
-
-
-# Full conversion for AD Account
-# ConvertTo-EnhancedHTML -HTMLFragments $BasicConfig, $HDDinfo, $DayAverage, $14average, $Reccomendation, $VMEvents, $SysEvents, $AppEvents -Title "Health Check" -CssUri styles2.css -PreContent "<h1>Health Check for $TroubleVM</h1>" | Out-file "EnhancedVMHealthCheck.html" -Encoding ASCII
