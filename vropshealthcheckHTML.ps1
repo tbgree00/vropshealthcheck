@@ -2,7 +2,7 @@
 Set-PowerCLIConfiguration -Scope Session -DisplayDeprecationWarnings $false -Confirm: $false
 
 #Gather Credentials for Windows VMs
-$ADName = read-host "Enter Trouble VM User Account, then enter the password when prompted"
+$ADName = read-host "Enter User Account with access to the troubled VM, then enter the password when prompted"
 
 Read-host -assecurestring | convertfrom-securestring | out-file cred.txt
 
